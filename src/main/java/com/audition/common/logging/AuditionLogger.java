@@ -32,7 +32,7 @@ public class AuditionLogger {
         }
     }
 
-    public void error(final Logger logger, final String message) {
+    public void error(final Logger logger, final String message, String eMessage) {
         if (logger.isErrorEnabled()) {
             logger.error(message);
         }
@@ -58,12 +58,23 @@ public class AuditionLogger {
     }
 
     private String createStandardProblemDetailMessage(final ProblemDetail standardProblemDetail) {
-        // TODO Add implementation here.
-        return StringUtils.EMPTY;
+        if (standardProblemDetail == null) {
+            return StringUtils.EMPTY;
+        }
+        return "ProblemDetail: "
+            + "Title: " + standardProblemDetail.getTitle() + ", "
+            + "Status: " + standardProblemDetail.getStatus() + ", "
+            + "Detail: " + standardProblemDetail.getDetail() + ", "
+            + "Instance: " + standardProblemDetail.getInstance();
     }
 
     private String createBasicErrorResponseMessage(final Integer errorCode, final String message) {
-        // TODO Add implementation here.
-        return StringUtils.EMPTY;
+        if (errorCode == null || StringUtils.isBlank(message)) {
+            return StringUtils.EMPTY;
+        }
+
+        // Return the constructed error message
+        return "Error Code: " + errorCode + " - "
+            + "Message: " + message;
     }
 }

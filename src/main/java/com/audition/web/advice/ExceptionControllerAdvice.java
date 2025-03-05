@@ -39,6 +39,7 @@ public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(Exception.class)
     ProblemDetail handleMainException(final Exception e) {
         // TODO Add handling for Exception
+        logger.error(LOG, "Unhandled exception occurred: ", e.getMessage());
         final HttpStatusCode status = getHttpStatusCodeFromException(e);
         return createProblemDetail(e, status);
 
@@ -48,8 +49,9 @@ public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
     ProblemDetail handleSystemException(final SystemException e) {
         // TODO `Add Handling for SystemException
         final HttpStatusCode status = getHttpStatusCodeFromSystemException(e);
-        return createProblemDetail(e, status);
-
+        ProblemDetail problemDetail= createProblemDetail(e, status);
+        logger.logStandardProblemDetail(LOG,problemDetail,e);
+        return problemDetail;
     }
 
 
