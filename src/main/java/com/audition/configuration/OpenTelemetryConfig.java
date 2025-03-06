@@ -1,13 +1,13 @@
 package com.audition.configuration;
 
-import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 
 @Configuration
@@ -20,12 +20,10 @@ public class OpenTelemetryConfig {
             .setEndpoint("http://localhost:14250")  // Replace with your Jaeger endpoint
             .build();
 
-        // Set up the tracer provider with the Jaeger exporter
         SdkTracerProvider tracerProvider = SdkTracerProvider.builder()
             .addSpanProcessor(SimpleSpanProcessor.create(jaegerExporter))
             .build();
 
-        // Build and register the OpenTelemetry SDK globally
         return OpenTelemetrySdk.builder()
             .setTracerProvider(tracerProvider)
             .buildAndRegisterGlobal();
@@ -33,7 +31,6 @@ public class OpenTelemetryConfig {
 
     @Bean
     public Tracer tracer() {
-        // Return the global tracer
-        return openTelemetry().getTracer("audition-api","1.0");
+        return openTelemetry().getTracer("audition-api", "1.0");
     }
 }

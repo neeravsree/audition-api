@@ -2,47 +2,43 @@ package com.audition.configuration;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
+import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebFilter;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
-@WebFilter("/*")
-
-public class ResponseHeaderInjector extends OncePerRequestFilter {
+public class ResponseHeaderInjector implements Filter {
 
     private final Tracer tracer;
-    private static final String spanIdHeader = "X-B3-SpanId";
-    private static final String TraceIdHeader = "X-B3-TraceId";
 
     public ResponseHeaderInjector(Tracer tracer) {
         this.tracer = tracer;
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-        throws ServletException, IOException {
-        Span currentSpan = tracer.spanBuilder("inject-response-headers").startSpan();
-        try {
-            // Extract trace context from the current span
-            String traceId = currentSpan.getSpanContext().getTraceId();
-            String spanId = currentSpan.getSpanContext().getSpanId();
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+        throws IOException, ServletException {
+        HttpServletRequest httpServletRequest = (HttpServletRequest) request;
+        HttpServletResponse httpServletResponse = (HttpServletResponse) response;
 
-            // Add the trace and span IDs to the response headers
-            response.setHeader(spanIdHeader, traceId);
-            response.setHeader(TraceIdHeader, spanId);
-
-            // Continue the filter chain
-            filterChain.doFilter(request, response);
-        } finally {
-            currentSpan.end();  // Always end the span when the request completes
+        // Extract the current trace context from the request (this is the context passed along the request)
+        Context context = Context.current();
+        Span currentSpan = Span.fromContext(context);
+        if (currentSpan == Span.getInvalid()) {
+            currentSpan = tracer.spanBuilder("inject-response-headers").startSpan();
         }
-    }
+        httpServletResponse.setHeader("X-B3-TraceId", currentSpan.getSpanContext().getTraceId());
+        httpServletResponse.setHeader("X-B3-SpanId", currentSpan.getSpanContext().getSpanId());
 
+        // Continue the filter chain
+        chain.doFilter(request, response);
+    }
 
 }
