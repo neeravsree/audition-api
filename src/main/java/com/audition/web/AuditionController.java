@@ -34,7 +34,7 @@ public class AuditionController {
 
     @RequestMapping(value = "/posts/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getPosts(@PathVariable("id") final String postId) {
-        
+
         if (!StringUtils.hasText(postId) || "null".equals(postId)) {
             return new ResponseEntity<>("Post ID must not be empty", HttpStatus.BAD_REQUEST);
         }
