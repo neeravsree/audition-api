@@ -7,8 +7,8 @@ plugins {
     id "com.github.spotbugs" version "5.0.14"
     id "io.freefair.lombok" version "8.0.1"
     // TODO Enable checkstyle and PMD. Fix all the relevant issues.
-    //id "checkstyle"
-    //id "pmd"
+    id "checkstyle"
+    id "pmd"
 }
 
 group = 'com.audition'
@@ -85,8 +85,24 @@ task prepareGitHooks(type: Copy) {
     include "*"
 }
 tasks.matching { it.name != 'prepareGitHooks' }.all { Task task -> task.dependsOn prepareGitHooks }
-
+//added for jacoco test generation
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.enabled true  // Enables XML report (required for CI tools like Jenkins)
+        html.enabled true // Enables HTML report (useful for viewing in the browser)
+        csv.enabled false // Disables CSV report
+    }
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: [
+                'com/audition/model/*',
+                'com/audition/common/*',
+                'com/audition/configuration/*'
+        ])
+    }))
+}
 
 tasks.named('test') {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
 }

@@ -15,14 +15,17 @@ public class AuditionService {
 
 
     public List<AuditionPost> getPosts() {
+
         return auditionIntegrationClient.getPosts();
     }
 
     public AuditionPost getPostById(final String postId) {
+
         return auditionIntegrationClient.getPostById(postId);
     }
 
     public List<Comments> getComments(final String id) {
+
         return auditionIntegrationClient.getComments(id);
     }
 
