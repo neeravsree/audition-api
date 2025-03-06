@@ -57,7 +57,7 @@ dependencies {
 
     implementation "io.opentelemetry:opentelemetry-api:${otelVersion}"
     implementation "io.opentelemetry:opentelemetry-sdk:${otelVersion}"
-    implementation "io.opentelemetry:opentelemetry-exporter-jaeger:${otelVersion}"  // Optional
+    implementation "io.opentelemetry:opentelemetry-exporter-jaeger:${otelVersion}"
     implementation "io.opentelemetry:opentelemetry-exporter-otlp:${otelVersion}"
 
     developmentOnly "org.springframework.boot:spring-boot-devtools"
