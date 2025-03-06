@@ -91,7 +91,7 @@ jacocoTestReport {
     reports {
         xml.enabled true  // Enables XML report (required for CI tools like Jenkins)
         html.enabled true // Enables HTML report (useful for viewing in the browser)
-        csv.enabled false // Disables CSV report
+        csv.enabled false
     }
     classDirectories.setFrom(files(classDirectories.files.collect {
         fileTree(dir: it, exclude: [
