@@ -2,11 +2,13 @@ package com.audition.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.audition.integration.AuditionIntegrationClient;
 import com.audition.model.AuditionPost;
+import com.audition.model.AuditionPostWithComments;
 import com.audition.model.Comments;
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 public class AuditionServiceTest {
@@ -63,13 +66,10 @@ public class AuditionServiceTest {
             new Comments(2, 1, "abc", "abc@sydney.com", "comment 2")
         );
         when(auditionIntegrationClient.getComments(postId)).thenReturn(expectedComments);
-
         List<Comments> actualComments = auditionService.getComments(postId);
-
         assertEquals(expectedComments.size(), actualComments.size());
         assertEquals(expectedComments.get(0).getId(), actualComments.get(0).getId());
         assertEquals(expectedComments.get(1).getBody(), actualComments.get(1).getBody());
-
         verify(auditionIntegrationClient).getComments(postId);
     }
 
@@ -80,14 +80,37 @@ public class AuditionServiceTest {
             new Comments(1, 1, "xyz", "xyz@sydney.com", "comment 1"),
             new Comments(2, 1, "abc", "abc@sydney.com", "comment 2")
         );
-        when(auditionIntegrationClient.getCommentsForPost(postId)).thenReturn(expectedComments);
-
-        List<Comments> actualComments = auditionService.getCommentsForPost(postId);
-
+        when(auditionIntegrationClient.getComments(postId)).thenReturn(expectedComments);
+        List<Comments> actualComments = auditionService.getComments(postId);
         assertEquals(expectedComments.size(), actualComments.size());
         assertEquals(expectedComments.get(0).getId(), actualComments.get(0).getId());
         assertEquals(expectedComments.get(1).getBody(), actualComments.get(1).getBody());
+        verify(auditionIntegrationClient).getComments(postId);
+    }
 
-        verify(auditionIntegrationClient).getCommentsForPost(postId);
+    @Test
+    public void testGetPostComments() {
+        String postId = "1";
+        when(auditionIntegrationClient.getPostComments(anyString())).thenReturn(getAuditionPostWithComments());
+        AuditionPostWithComments result = auditionService.getPostComments(postId);
+        assertEquals(Integer.valueOf(postId), result.getId());
+        assertEquals("Test Post", result.getTitle());
+        assertEquals(2, result.getComments().size());
+        assertEquals("Great post!", result.getComments().get(0).getBody());
+        assertEquals("Nice post!", result.getComments().get(1).getBody());
+    }
+
+    private static AuditionPostWithComments getAuditionPostWithComments() {
+        List<Comments> comments = Arrays.asList(
+            new Comments(1, 1, "User1", "user1@example.com", "Great post!"),
+            new Comments(1, 1, "User2", "user2@example.com", "Nice post!")
+        );
+        AuditionPostWithComments mockPostWithComments = new AuditionPostWithComments();
+        mockPostWithComments.setId(1);
+        mockPostWithComments.setUserId(1);
+        mockPostWithComments.setTitle("Test Post");
+        mockPostWithComments.setBody("This is a test post body.");
+        mockPostWithComments.setComments(comments);
+        return mockPostWithComments;
     }
 }

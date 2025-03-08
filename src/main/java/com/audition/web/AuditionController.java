@@ -1,11 +1,14 @@
 package com.audition.web;
 
 import com.audition.model.AuditionPost;
+import com.audition.model.AuditionPostWithComments;
 import com.audition.model.Comments;
 import com.audition.service.AuditionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -37,10 +40,14 @@ public class AuditionController {
     public List<AuditionPost> getPosts(@RequestParam(required = false) Integer userId) {
 
         List<AuditionPost> allPosts = auditionService.getPosts();
-        if (userId != null) {
-            allPosts = allPosts.stream().filter(post -> post.getUserId() == userId).toList();
-        }
-        return allPosts;
+        return Optional.ofNullable(userId)
+            .map(usrIdForPost -> allPosts.stream()
+                .filter(post -> Optional.of(post.getUserId())
+                    .map(userIdFromPost -> userIdFromPost.equals(usrIdForPost))
+                    .orElse(false))
+                .collect(Collectors.toList()))
+            .orElse(allPosts);
+
     }
 
     @Operation(
@@ -48,7 +55,7 @@ public class AuditionController {
         description = "REST API for returning all posts based on postId"
     )
     @RequestMapping(value = "/posts/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getPosts(@PathVariable("id") final String postId) {
+    public ResponseEntity<?> getPostsById(@PathVariable("id") final String postId) {
 
         if (!StringUtils.hasText(postId) || "null".equals(postId)) {
             return new ResponseEntity<>("Post ID must not be empty", HttpStatus.BAD_REQUEST);
@@ -62,17 +69,17 @@ public class AuditionController {
         description = "REST API for returning all commnets based on postId"
     )
     @GetMapping("/posts/{postId}/comments")
-    public List<Comments> getComments(@PathVariable("postId") final String postId) {
+    public AuditionPostWithComments getPostComments(@PathVariable("postId") final String postId) {
 
-        return auditionService.getComments(postId);
+        return auditionService.getPostComments(postId);
     }
 
     @Operation(
-        summary = "Get API for returning all posts based on postId",
-        description = "REST API for returning all posts based on postId"
+        summary = "Get API for returning all comments based on postId",
+        description = "REST API for returning all comments based on postId"
     )
-    @GetMapping("/posts/comments")
-    public List<Comments> getCommentsForPost(@RequestParam("postId") final String postId) {
+    @GetMapping("/comments")
+    public List<Comments> getCommentsByPostId(@RequestParam("postId") final String postId) {
 
         return auditionService.getComments(postId);
     }

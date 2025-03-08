@@ -49,6 +49,8 @@ dependencies {
     implementation "io.micrometer:context-propagation"
     implementation "org.springframework.cloud:spring-cloud-starter-config"
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
     implementation "io.opentelemetry:opentelemetry-api:${otelVersion}"
     implementation "io.opentelemetry:opentelemetry-sdk:${otelVersion}"

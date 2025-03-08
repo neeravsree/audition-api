@@ -8,20 +8,24 @@ import com.audition.common.logging.AuditionLogger;
 import com.audition.web.advice.ExceptionControllerAdvice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.client.HttpClientErrorException;
 
 class ExceptionControllerAdviceTest {
 
+    @InjectMocks
     private ExceptionControllerAdvice exceptionControllerAdvice;
+    @Mock
     private AuditionLogger logger;
 
     @BeforeEach
     void setUp() {
-        logger = Mockito.mock(AuditionLogger.class);
-        exceptionControllerAdvice = new ExceptionControllerAdvice(logger);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test

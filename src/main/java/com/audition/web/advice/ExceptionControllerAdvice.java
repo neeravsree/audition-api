@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -18,8 +19,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @ControllerAdvice
 public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
 
@@ -28,6 +27,7 @@ public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
     private static final String ERROR_MESSAGE = " Error Code from Exception could not be mapped to a valid HttpStatus Code - ";
     private static final String DEFAULT_MESSAGE = "API Error occurred. Please contact support or administrator.";
 
+    @Autowired
     private AuditionLogger logger;
 
     @ExceptionHandler(HttpClientErrorException.class)

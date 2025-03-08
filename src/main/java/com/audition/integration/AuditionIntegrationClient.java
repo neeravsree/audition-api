@@ -2,7 +2,9 @@ package com.audition.integration;
 
 import com.audition.common.exception.SystemException;
 import com.audition.constants.AuditionConstants;
+import com.audition.mapper.AuditionIntegrationMapper;
 import com.audition.model.AuditionPost;
+import com.audition.model.AuditionPostWithComments;
 import com.audition.model.Comments;
 import java.net.URI;
 import java.util.Arrays;
@@ -26,65 +28,57 @@ public class AuditionIntegrationClient {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    AuditionIntegrationMapper auditionIntegrationMapper;
+
     public List<AuditionPost> getPosts() {
-        try {
-            AuditionPost[] posts = restTemplate.getForObject(AuditionConstants.POSTS_API_URL, AuditionPost[].class);
+            AuditionPost[] posts = makeRestCall(AuditionConstants.POSTS_API_URL, AuditionPost[].class);
             return posts != null ? Arrays.asList(posts) : Collections.emptyList();
-        } catch (Exception e) {
-            logger.info("Error occured{}", String.valueOf(e));
-            return Collections.emptyList();
-        }
     }
 
-    public AuditionPost getPostById(final String id) {
+    public AuditionPost getPostById(final String postId) {
         String postUrl = UriComponentsBuilder.fromUri(URI.create(AuditionConstants.POSTS_API_URL))
-            .path(id)
-            .buildAndExpand(id).toUriString();
-        try {
-            return restTemplate.getForObject(postUrl, AuditionPost.class);
-        } catch (final HttpClientErrorException e) {
-            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                throw new SystemException("Cannot find a Post with id " + id, "Resource Not Found", 404);
-            } else {
-                throw new SystemException(e.getMessage(), e.getMessage(), e.getStatusCode().value());
-            }
-        }
+            .path(postId)
+            .buildAndExpand(postId).toUriString();
+        return makeRestCall(postUrl, AuditionPost.class);
+    }
+
+    public AuditionPostWithComments getPostComments(final String postId) {
+        String commentUrl = UriComponentsBuilder.fromHttpUrl(AuditionConstants.POSTS_API_URL + "{id}/" + AuditionConstants.COMMENTS)
+            .buildAndExpand(postId).toUriString();
+        AuditionPost auditionPost=getPostById(postId);
+        Optional.ofNullable(auditionPost)
+            .orElseThrow(() -> new SystemException(AuditionConstants.POST_NOT_FOUND, AuditionConstants.POST_ID_NOT_FOUND + postId , HttpStatus.NOT_FOUND.value()));
+        Comments[] comments = makeRestCall(commentUrl, Comments[].class);
+        List<Comments> commentsForPost=Optional.ofNullable(comments).map(Arrays::asList).orElse(Collections.emptyList());
+        return auditionIntegrationMapper.mapper(auditionPost,commentsForPost);
+
     }
 
     public List<Comments> getComments(final String id) {
-
-        String commentUrl = UriComponentsBuilder.fromHttpUrl(AuditionConstants.POSTS_API_URL + "{id}" + "/comments")
+        String commentUrl = UriComponentsBuilder.fromUri(URI.create(AuditionConstants.COMMENTS_API_URL))
+            .queryParam(AuditionConstants.POST, id)
             .buildAndExpand(id).toUriString();
-        try {
-            Comments[] comments = restTemplate.getForObject(commentUrl, Comments[].class);
-            return Optional.ofNullable(comments).map(Arrays::asList).orElse(Collections.emptyList());
-        } catch (final HttpClientErrorException e) {
-            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                throw new SystemException("Cannot find a comments with postId " + id, "Resource Not Found", 404);
-            } else {
-                throw new SystemException(e.getMessage(), e.getMessage(), e.getStatusCode().value());
-            }
-        }
+        Comments[] comments = makeRestCall(commentUrl, Comments[].class);
+        return Optional.ofNullable(comments).map(Arrays::asList).orElse(Collections.emptyList());
     }
 
-    public List<Comments> getCommentsForPost(final String id) {
-
-        String commentUrl = UriComponentsBuilder.fromUri(URI.create(AuditionConstants.POSTS_API_URL))
-            .path("comments")
-            .queryParam("postId", id)
-            .buildAndExpand(id).toUriString();
+    private <T> T makeRestCall(String url, Class<T> responseType) {
         try {
-            Comments[] comments = restTemplate.getForObject(commentUrl, Comments[].class);
-            return Optional.ofNullable(comments).map(Arrays::asList).orElse(Collections.emptyList());
+            return restTemplate.getForObject(url, responseType);
         } catch (final HttpClientErrorException e) {
-            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                throw new SystemException("Cannot find a comments with postId " + id, "Resource Not Found", 404);
-            } else {
-                throw new SystemException(e.getMessage(), e.getMessage(), e.getStatusCode().value());
-            }
+            handleHttpClientErrorException(e);
         }
+        return null;
     }
 
+    private void handleHttpClientErrorException(HttpClientErrorException e) {
+        if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+            throw new SystemException(AuditionConstants.RESOURCE_NOT_FOUND, e.getMessage(), e.getStatusCode().value());
+        } else {
+            throw new SystemException(e.getMessage(), e.getMessage(), e.getStatusCode().value());
+        }
+    }
 }
 
 
