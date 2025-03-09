@@ -13,8 +13,8 @@ public class AuditionIntegrationMapper {
     public AuditionPostWithComments mapper(AuditionPost post, List<Comments> comments){
         AuditionPostWithComments postWithComments = new AuditionPostWithComments();
         Optional.ofNullable(post).ifPresent(p -> {
-            postWithComments.setUserId(Optional.ofNullable(p.getId()).orElse(null));
-            postWithComments.setId(Optional.ofNullable(p.getId()).orElse(null));
+            postWithComments.setUserId(Optional.of(p.getId()).orElse(null));
+            postWithComments.setId(p.getId());
             postWithComments.setTitle(Optional.ofNullable(p.getTitle()).orElse(""));
             postWithComments.setBody(Optional.ofNullable(p.getBody()).orElse(""));
         });

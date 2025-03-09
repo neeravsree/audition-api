@@ -119,9 +119,7 @@ public class AuditionIntegrationClientTest {
         };
         String commentUrl = AuditionConstants.COMMENTS_API_URL+"?postId="+postId;
         when(restTemplate.getForObject(commentUrl, Comments[].class)).thenReturn(comments);
-
         List<Comments> result = auditionIntegrationClient.getComments(postId);
-
         assertNotNull(result);
         assertEquals(2, result.size());
         verify(restTemplate).getForObject(commentUrl, Comments[].class);
@@ -158,14 +156,11 @@ public class AuditionIntegrationClientTest {
     void testGetCommentsForPost_ThrowsSystemException_WhenHttpClientErrorExceptionIsOtherError() {
         String postId = "1";
         HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Bad Request");
-
         when(restTemplate.getForObject(anyString(), eq(Comments[].class)))
             .thenThrow(exception);
-
         SystemException thrownException = assertThrows(SystemException.class, () -> {
             auditionIntegrationClient.getComments(postId);
         });
-
         assertEquals("400 Bad Request", thrownException.getMessage());
         assertEquals(400, thrownException.getStatusCode());
     }
@@ -208,7 +203,6 @@ public class AuditionIntegrationClientTest {
     void testGetPostComments_withNullAuditionPost_shouldThrowSystemException() {
         String postId = "123";
         when(auditionIntegrationClient.getPostById(postId)).thenReturn(null);
-
         assertThrows(SystemException.class, () -> {
             auditionIntegrationClient.getPostComments(postId);
         });
@@ -218,17 +212,12 @@ public class AuditionIntegrationClientTest {
     void testGetPostComments_withNullComments_shouldReturnEmptyListInPost() {
         String postId = "123";
         String commentUrl = AuditionConstants.POSTS_API_URL + postId + "/" + AuditionConstants.COMMENTS;
-
         when(auditionIntegrationClient.getPostById(postId)).thenReturn(mockAuditionPost);
-
         when(restTemplate.getForObject(commentUrl, Comments[].class)).thenReturn(null);
-
         AuditionPostWithComments mockPostWithComments = new AuditionPostWithComments();
         when(auditionIntegrationMapper.mapper(mockAuditionPost, Collections.emptyList()))
             .thenReturn(mockPostWithComments);
-
         AuditionPostWithComments result = auditionIntegrationClient.getPostComments(postId);
-
         assertNotNull(result);
         verify(restTemplate).getForObject(commentUrl, Comments[].class);
         verify(auditionIntegrationMapper).mapper(mockAuditionPost, Collections.emptyList());
@@ -238,17 +227,12 @@ public class AuditionIntegrationClientTest {
     void testGetPostComments_withEmptyCommentsArray_shouldReturnEmptyListInPost() {
         String postId = "123";
         String commentUrl = AuditionConstants.POSTS_API_URL + postId + "/" + AuditionConstants.COMMENTS;
-
         when(auditionIntegrationClient.getPostById(postId)).thenReturn(mockAuditionPost);
-
         when(restTemplate.getForObject(commentUrl, Comments[].class)).thenReturn(new Comments[]{});
-
         AuditionPostWithComments mockPostWithComments = new AuditionPostWithComments();
         when(auditionIntegrationMapper.mapper(mockAuditionPost, Collections.emptyList()))
             .thenReturn(mockPostWithComments);
-
         AuditionPostWithComments result = auditionIntegrationClient.getPostComments(postId);
-
         assertNotNull(result);
         verify(restTemplate).getForObject(commentUrl, Comments[].class);
         verify(auditionIntegrationMapper).mapper(mockAuditionPost, Collections.emptyList());
@@ -258,16 +242,26 @@ public class AuditionIntegrationClientTest {
     void testGetPostComments_withHttpClientErrorException_shouldThrowSystemException() {
         String postId = "123";
         String commentUrl = AuditionConstants.POSTS_API_URL + postId + "/" + AuditionConstants.COMMENTS;
-
         when(auditionIntegrationClient.getPostById(postId)).thenReturn(mockAuditionPost);
-
         HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.NOT_FOUND);
         when(restTemplate.getForObject(commentUrl, Comments[].class)).thenThrow(exception);
-
         assertThrows(SystemException.class, () -> {
             auditionIntegrationClient.getPostComments(postId);
         });
     }
-
+    @Test
+    void testGetComments_ShouldInvokeSetters() {
+        String postId = "1";
+        Comments mockComment = new Comments();
+        mockComment.setPostId(1);
+        mockComment.setId(2);
+        mockComment.setName("Test Name");
+        mockComment.setEmail("test@example.com");
+        mockComment.setBody("This is a test comment.");
+        Comments[] mockCommentsArray = new Comments[] { mockComment };
+        when(restTemplate.getForObject(AuditionConstants.COMMENTS_API_URL+ "?post=" + postId, Comments[].class)).thenReturn(mockCommentsArray);
+        List<Comments> commentsList = auditionIntegrationClient.getComments(postId);
+        assertNotNull(commentsList);
+    }
 
 }

@@ -2,6 +2,12 @@ package com.audition.web;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.audition.common.exception.SystemException;
 import com.audition.common.logging.AuditionLogger;
@@ -57,4 +63,26 @@ class ExceptionControllerAdviceTest {
         assertEquals("System Error", problemDetail.getDetail());
         assertEquals("Title", problemDetail.getTitle());
     }
+
+    @Test
+    void testHandleHttpClientErrorException_withInvalidStatusCode() {
+        HttpClientErrorException exception = mock(HttpClientErrorException.class);
+        when(exception.getStatusCode()).thenReturn(HttpStatus.BAD_REQUEST);
+        when(exception.getMessage()).thenReturn("Bad Request");
+        ProblemDetail problemDetail = exceptionControllerAdvice.handleHttpClientException(exception);
+        assertEquals(HttpStatus.BAD_REQUEST.value(), problemDetail.getStatus());
+        assertEquals("Bad Request", problemDetail.getDetail());
+        assertEquals(ExceptionControllerAdvice.DEFAULT_TITLE, problemDetail.getTitle());
+        verify(logger).logErrorWithException(any(), anyString(), eq(exception));
+    }
+       @Test
+    void testHandleOtherException() {
+        Exception exception = new Exception("Other error");
+        ProblemDetail problemDetail = exceptionControllerAdvice.handleMainException(exception);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
+        assertEquals("Other error", problemDetail.getDetail());
+        verify(logger).logErrorWithException(any(), anyString(), eq(exception));
+    }
+
+
 }

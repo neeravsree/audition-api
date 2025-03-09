@@ -54,9 +54,7 @@ public class AuditionControllerTest {
         String postId = "1";
         AuditionPost post = new AuditionPost(1, 1, "Title 1", "Description 1");
         when(auditionService.getPostById(postId)).thenReturn(post);
-
         ResponseEntity<?> response = auditionController.getPostsById(postId);
-
         assertTrue(response.getStatusCode().is2xxSuccessful());
         AuditionPost returnedPost = (AuditionPost) response.getBody();
         assertNotNull(returnedPost);
@@ -66,13 +64,19 @@ public class AuditionControllerTest {
 
     @Test
     void testGetPostByIdInvalid() {
-        String postId = "null";
+        String postId = null;
         String errorMessage = "Post ID must not be empty";
-
         ResponseEntity<?> response = auditionController.getPostsById(postId);
-
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(errorMessage, response.getBody());
+    }
+
+    @Test
+    public void testGetPostsById_PostIdEmpty() {
+        String postId = ""; // Empty postId
+        ResponseEntity<?> response = auditionController.getPostsById(postId);
+        assertEquals("Post ID must not be empty", response.getBody());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test

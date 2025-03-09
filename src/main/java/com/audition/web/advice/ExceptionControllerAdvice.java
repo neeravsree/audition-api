@@ -1,5 +1,6 @@
 package com.audition.web.advice;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.METHOD_NOT_ALLOWED;
 
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
@@ -32,14 +34,14 @@ public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(HttpClientErrorException.class)
     public ProblemDetail handleHttpClientException(final HttpClientErrorException e) {
+        logger.logErrorWithException(LOG, getMessageFromException(e)+ e.getMessage(), e);
         return createProblemDetail(e, e.getStatusCode());
 
     }
 
-
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleMainException(final Exception e) {
-        logger.error(LOG, "Unhandled exception occurred: ", e.getMessage());
+        logger.logErrorWithException(LOG, getMessageFromException(e)+ e.getMessage(), e);
         final HttpStatusCode status = getHttpStatusCodeFromException(e);
         return createProblemDetail(e, status);
 
@@ -52,7 +54,6 @@ public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
         logger.logStandardProblemDetail(LOG, problemDetail, e);
         return problemDetail;
     }
-
 
     private ProblemDetail createProblemDetail(final Exception exception,
         final HttpStatusCode statusCode) {

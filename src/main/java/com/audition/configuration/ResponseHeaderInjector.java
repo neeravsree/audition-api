@@ -1,5 +1,6 @@
 package com.audition.configuration;
 
+import com.audition.constants.AuditionConstants;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
@@ -32,12 +33,10 @@ public class ResponseHeaderInjector implements Filter {
         Context context = Context.current();
         Span currentSpan = Span.fromContext(context);
         if (currentSpan == Span.getInvalid()) {
-            currentSpan = tracer.spanBuilder("inject-response-headers").startSpan();
+            currentSpan = tracer.spanBuilder(AuditionConstants.INJECT_RESPONSE_HEADERS).startSpan();
         }
-        httpServletResponse.setHeader("X-B3-TraceId", currentSpan.getSpanContext().getTraceId());
-        httpServletResponse.setHeader("X-B3-SpanId", currentSpan.getSpanContext().getSpanId());
-
-        // Continue the filter chain
+        httpServletResponse.setHeader(AuditionConstants.TRACEID, currentSpan.getSpanContext().getTraceId());
+        httpServletResponse.setHeader(AuditionConstants.SPANID, currentSpan.getSpanContext().getSpanId());
         chain.doFilter(request, response);
     }
 

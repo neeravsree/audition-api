@@ -1,5 +1,6 @@
 package com.audition.web;
 
+import com.audition.constants.AuditionConstants;
 import com.audition.model.AuditionPost;
 import com.audition.model.AuditionPostWithComments;
 import com.audition.model.Comments;
@@ -10,10 +11,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,9 +57,9 @@ public class AuditionController {
     )
     @RequestMapping(value = "/posts/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getPostsById(@PathVariable("id") final String postId) {
-
-        if (!StringUtils.hasText(postId) || "null".equals(postId)) {
-            return new ResponseEntity<>("Post ID must not be empty", HttpStatus.BAD_REQUEST);
+         //we can add spring-boot-starter-validation if more validations are present
+        if (StringUtils.isBlank(postId)) {
+            return new ResponseEntity<>(AuditionConstants.POST_ID_EMPTY, HttpStatus.BAD_REQUEST);
         }
         final AuditionPost auditionPosts = auditionService.getPostById(postId);
         return ResponseEntity.ok(auditionPosts);

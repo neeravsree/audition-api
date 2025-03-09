@@ -1,5 +1,6 @@
 package com.audition.configuration;
 
+import com.audition.constants.AuditionConstants;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter;
@@ -17,7 +18,7 @@ public class OpenTelemetryConfig {
     public OpenTelemetry openTelemetry() {
         // Jaeger exporter configuration
         JaegerGrpcSpanExporter jaegerExporter = JaegerGrpcSpanExporter.builder()
-            .setEndpoint("http://localhost:14250")  // Replace with your Jaeger endpoint
+            .setEndpoint(AuditionConstants.JAEGER_URL)  // Replace with your Jaeger endpoint
             .build();
 
         SdkTracerProvider tracerProvider = SdkTracerProvider.builder()

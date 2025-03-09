@@ -72,8 +72,8 @@ public class WebServiceConfiguration implements WebMvcConfigurer {
 
         private void logRequest(org.springframework.http.HttpRequest request, byte[] body) throws IOException {
             // Log request details (method, URL, headers, body)
-            logger.info("Request: " + request.getMethod() + " " + request.getURI());
-            logger.info("Headers: " + request.getHeaders());
+            logger.info("Request: {} {}", request.getMethod(), request.getURI());
+            logger.info("Headers: {}", request.getHeaders());
             if (body != null && body.length > 0) {
                 logger.info("Body: " + new String(body));
             }
@@ -81,10 +81,10 @@ public class WebServiceConfiguration implements WebMvcConfigurer {
 
         private void logResponse(ClientHttpResponse response) throws IOException {
             // Log response details (status code, headers, body)
-            logger.info("Response Status: " + response.getStatusCode());
-            logger.info("Response Headers: " + response.getHeaders());
+            logger.info("Response Status: {}", response.getStatusCode());
+            logger.info("Response Headers: {}", response.getHeaders());
             String responseBody = new String(response.getBody().readAllBytes());
-            logger.info("Response Body: " + responseBody);
+            logger.info("Response Body: {}", responseBody);
         }
     }
 }
