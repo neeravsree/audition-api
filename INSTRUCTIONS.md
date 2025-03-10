@@ -41,7 +41,8 @@ After building the project, you can run the Spring Boot application using the fo
 
 ./gradlew bootRun
 
-The application will start on [http://localhost:8080](http://localhost:8080).
+The application will start on [http://localhost:8080](http://localhost:8080). 
+Swagger Url for testing: http://localhost:8080/swagger-ui/index.html
 
 ### 4. How to Use the Application
 
