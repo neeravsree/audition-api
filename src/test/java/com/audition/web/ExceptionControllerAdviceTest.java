@@ -11,15 +11,20 @@ import static org.mockito.Mockito.when;
 
 import com.audition.common.exception.SystemException;
 import com.audition.common.logging.AuditionLogger;
+import com.audition.constants.AuditionConstants;
 import com.audition.web.advice.ExceptionControllerAdvice;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.client.HttpClientErrorException;
 
 class ExceptionControllerAdviceTest {
@@ -28,10 +33,14 @@ class ExceptionControllerAdviceTest {
     private ExceptionControllerAdvice exceptionControllerAdvice;
     @Mock
     private AuditionLogger logger;
+    @Autowired
+    private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        mockMvc = MockMvcBuilders.standaloneSetup(exceptionControllerAdvice)
+            .build();
     }
 
     @Test
@@ -72,7 +81,7 @@ class ExceptionControllerAdviceTest {
         ProblemDetail problemDetail = exceptionControllerAdvice.handleHttpClientException(exception);
         assertEquals(HttpStatus.BAD_REQUEST.value(), problemDetail.getStatus());
         assertEquals("Bad Request", problemDetail.getDetail());
-        assertEquals(ExceptionControllerAdvice.DEFAULT_TITLE, problemDetail.getTitle());
+        assertEquals(AuditionConstants.DEFAULT_TITLE, problemDetail.getTitle());
         verify(logger).logErrorWithException(any(), anyString(), eq(exception));
     }
        @Test
@@ -84,5 +93,14 @@ class ExceptionControllerAdviceTest {
         verify(logger).logErrorWithException(any(), anyString(), eq(exception));
     }
 
+    @Test
+    public void testHandleConstraintViolationException() {
+        ConstraintViolationException exception = new ConstraintViolationException(AuditionConstants.ERROR_PATTERN, null);
+        ResponseEntity<ProblemDetail> responseEntity = exceptionControllerAdvice.handleConstraintViolationExceptions(exception);
+        ProblemDetail problemDetail = responseEntity.getBody();
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+        assertEquals(AuditionConstants.VALIDATION_ERROR, problemDetail.getTitle());
+        assertEquals(AuditionConstants.ERROR_PATTERN, problemDetail.getDetail());
+    }
 
 }

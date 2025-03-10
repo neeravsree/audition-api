@@ -26,13 +26,10 @@ class AuditionIntegrationMapperTest {
         post.setId(1);
         post.setTitle("Test Title");
         post.setBody("Test Body");
-
         Comments comment1 = Mockito.mock(Comments.class);
         Comments comment2 = Mockito.mock(Comments.class);
         List<Comments> comments = List.of(comment1, comment2);
-
         AuditionPostWithComments result = auditionIntegrationMapper.mapper(post, comments);
-
         assertNotNull(result);
         assertEquals(1L, result.getUserId());
         assertEquals(1L, result.getId());
@@ -47,11 +44,8 @@ class AuditionIntegrationMapperTest {
         post.setId(1);
         post.setTitle("Title");
         post.setBody("Body");
-
         List<Comments> comments = null;
-
         AuditionPostWithComments result = auditionIntegrationMapper.mapper(post, comments);
-
         assertNotNull(result);
         assertEquals(1L, result.getUserId());
         assertEquals(1L, result.getId());

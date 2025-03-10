@@ -7,6 +7,7 @@ import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import jakarta.annotation.PreDestroy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,14 +15,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenTelemetryConfig {
 
+    private JaegerGrpcSpanExporter jaegerExporter;
+    private SdkTracerProvider tracerProvider;
     @Bean
     public OpenTelemetry openTelemetry() {
         // Jaeger exporter configuration
-        JaegerGrpcSpanExporter jaegerExporter = JaegerGrpcSpanExporter.builder()
+         jaegerExporter = JaegerGrpcSpanExporter.builder()
             .setEndpoint(AuditionConstants.JAEGER_URL)  // Replace with your Jaeger endpoint
             .build();
 
-        SdkTracerProvider tracerProvider = SdkTracerProvider.builder()
+         tracerProvider = SdkTracerProvider.builder()
             .addSpanProcessor(SimpleSpanProcessor.create(jaegerExporter))
             .build();
 
@@ -33,5 +36,15 @@ public class OpenTelemetryConfig {
     @Bean
     public Tracer tracer() {
         return openTelemetry().getTracer("audition-api", "1.0");
+    }
+
+    @PreDestroy
+    public void cleanup() {
+        if (jaegerExporter != null) {
+            jaegerExporter.close();  // Close the exporter when the application shuts down
+        }
+        if (tracerProvider != null) {
+            tracerProvider.close();  // Close the tracer provider to release resources
+        }
     }
 }

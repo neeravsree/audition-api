@@ -11,8 +11,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -22,8 +20,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 public class AuditionIntegrationClient {
-
-    private static final Logger logger = LoggerFactory.getLogger(AuditionIntegrationClient.class);
 
     @Autowired
     private RestTemplate restTemplate;
@@ -57,7 +53,7 @@ public class AuditionIntegrationClient {
 
     public List<Comments> getComments(final String id) {
         String commentUrl = UriComponentsBuilder.fromUri(URI.create(AuditionConstants.COMMENTS_API_URL))
-            .queryParam(AuditionConstants.POST, id)
+            .queryParam(AuditionConstants.POSTID, id)
             .buildAndExpand(id).toUriString();
         Comments[] comments = makeRestCall(commentUrl, Comments[].class);
         return Optional.ofNullable(comments).map(Arrays::asList).orElse(Collections.emptyList());

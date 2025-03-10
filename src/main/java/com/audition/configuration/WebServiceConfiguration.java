@@ -1,5 +1,6 @@
 package com.audition.configuration;
 
+import com.audition.constants.AuditionConstants;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -71,20 +72,18 @@ public class WebServiceConfiguration implements WebMvcConfigurer {
         }
 
         private void logRequest(org.springframework.http.HttpRequest request, byte[] body) throws IOException {
-            // Log request details (method, URL, headers, body)
-            logger.info("Request: {} {}", request.getMethod(), request.getURI());
-            logger.info("Headers: {}", request.getHeaders());
+            logger.info(AuditionConstants.REQUEST +": {} {}", request.getMethod(), request.getURI());
+            logger.info(AuditionConstants.HEADERS+": {}", request.getHeaders());
             if (body != null && body.length > 0) {
-                logger.info("Body: " + new String(body));
+                logger.info(AuditionConstants.BODY + new String(body));
             }
         }
 
         private void logResponse(ClientHttpResponse response) throws IOException {
-            // Log response details (status code, headers, body)
-            logger.info("Response Status: {}", response.getStatusCode());
-            logger.info("Response Headers: {}", response.getHeaders());
+            logger.info(AuditionConstants.RESPONSE_STATUS, response.getStatusCode());
+            logger.info(AuditionConstants.RESPONSE_HEADERS, response.getHeaders());
             String responseBody = new String(response.getBody().readAllBytes());
-            logger.info("Response Body: {}", responseBody);
+            logger.info(AuditionConstants.RESPONSE_BODY, responseBody);
         }
     }
 }

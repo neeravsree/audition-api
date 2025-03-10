@@ -2,11 +2,14 @@ package com.audition.web;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.audition.common.exception.SystemException;
+import com.audition.constants.AuditionConstants;
 import com.audition.model.AuditionPost;
 import com.audition.model.AuditionPostWithComments;
 import com.audition.model.Comments;
@@ -20,7 +23,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 public class AuditionControllerTest {
 
@@ -50,33 +52,37 @@ public class AuditionControllerTest {
     }
 
     @Test
-    void testGetPostByIdValid() {
-        String postId = "1";
-        AuditionPost post = new AuditionPost(1, 1, "Title 1", "Description 1");
-        when(auditionService.getPostById(postId)).thenReturn(post);
-        ResponseEntity<?> response = auditionController.getPostsById(postId);
-        assertTrue(response.getStatusCode().is2xxSuccessful());
-        AuditionPost returnedPost = (AuditionPost) response.getBody();
-        assertNotNull(returnedPost);
-        assertEquals(postId, String.valueOf(returnedPost.getId()));
-        verify(auditionService).getPostById(postId);
+    public void testGetPostsById_ValidPostId() {
+        String validPostId = "123";
+        AuditionPost post = new AuditionPost();
+        post.setId(Integer.parseInt(validPostId));
+        post.setTitle("Valid Post");
+        when(auditionService.getPostById(validPostId)).thenReturn(post);
+        AuditionPost result = auditionController.getPostsById(validPostId);
+        assertNotNull(result);
+        assertEquals(Integer.valueOf(validPostId), result.getId());
+        assertEquals("Valid Post", result.getTitle());
+        verify(auditionService, times(1)).getPostById(validPostId);
     }
 
     @Test
-    void testGetPostByIdInvalid() {
-        String postId = null;
-        String errorMessage = "Post ID must not be empty";
-        ResponseEntity<?> response = auditionController.getPostsById(postId);
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals(errorMessage, response.getBody());
+    public void testGetPostsById_EmptyPostId() {
+        String invalidPostId = "";
+        SystemException ex = assertThrows(SystemException.class, () -> {
+            auditionController.getPostsById(invalidPostId);
+        });
+        assertEquals(AuditionConstants.POST_ID_EMPTY, ex.getMessage());
+        assertEquals(HttpStatus.BAD_REQUEST.value(), ex.getStatusCode());
     }
 
     @Test
-    public void testGetPostsById_PostIdEmpty() {
-        String postId = ""; // Empty postId
-        ResponseEntity<?> response = auditionController.getPostsById(postId);
-        assertEquals("Post ID must not be empty", response.getBody());
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    public void testGetPostsById_NullPostId() {
+        String nullPostId = "null";
+        SystemException ex = assertThrows(SystemException.class, () -> {
+            auditionController.getPostsById(nullPostId);
+        });
+        assertEquals(AuditionConstants.POST_ID_EMPTY, ex.getMessage());
+        assertEquals(HttpStatus.BAD_REQUEST.value(), ex.getStatusCode());
     }
 
     @Test
@@ -120,5 +126,5 @@ public class AuditionControllerTest {
         assertEquals("User2", commentsResult.get(1).getName());
         verify(auditionService).getComments(postId);
     }
-    
+
 }

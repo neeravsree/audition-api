@@ -1,5 +1,6 @@
 package com.audition.web;
 
+import com.audition.common.exception.SystemException;
 import com.audition.constants.AuditionConstants;
 import com.audition.model.AuditionPost;
 import com.audition.model.AuditionPostWithComments;
@@ -7,6 +8,7 @@ import com.audition.model.Comments;
 import com.audition.service.AuditionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Pattern;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -14,7 +16,7 @@ import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
     description = "CRUD REST APIs for Audition API"
 )
 @RestController
+@Validated
 @AllArgsConstructor
 public class AuditionController {
 
@@ -56,13 +59,14 @@ public class AuditionController {
         description = "REST API for returning all posts based on postId"
     )
     @RequestMapping(value = "/posts/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getPostsById(@PathVariable("id") final String postId) {
-         //we can add spring-boot-starter-validation if more validations are present
-        if (StringUtils.isBlank(postId)) {
-            return new ResponseEntity<>(AuditionConstants.POST_ID_EMPTY, HttpStatus.BAD_REQUEST);
+    public AuditionPost getPostsById(@PathVariable("id")
+                                     @Pattern(regexp = AuditionConstants.REGEX_PATTERN, message = AuditionConstants.ERROR_PATTERN) final String postId) {
+
+        if (StringUtils.isBlank(postId)|| "null".equalsIgnoreCase(postId)) {
+            throw new SystemException(AuditionConstants.POST_ID_EMPTY, AuditionConstants.POST_ID_EMPTY,
+                HttpStatus.BAD_REQUEST.value());
         }
-        final AuditionPost auditionPosts = auditionService.getPostById(postId);
-        return ResponseEntity.ok(auditionPosts);
+        return auditionService.getPostById(postId);
     }
 
     @Operation(
@@ -70,7 +74,7 @@ public class AuditionController {
         description = "REST API for returning all commnets based on postId"
     )
     @GetMapping("/posts/{postId}/comments")
-    public AuditionPostWithComments getPostComments(@PathVariable("postId") final String postId) {
+    public AuditionPostWithComments getPostComments(@PathVariable(AuditionConstants.POSTID) final String postId) {
 
         return auditionService.getPostComments(postId);
     }
@@ -80,7 +84,7 @@ public class AuditionController {
         description = "REST API for returning all comments based on postId"
     )
     @GetMapping("/comments")
-    public List<Comments> getCommentsByPostId(@RequestParam("postId") final String postId) {
+    public List<Comments> getCommentsByPostId(@RequestParam(AuditionConstants.POSTID) final String postId) {
 
         return auditionService.getComments(postId);
     }
